@@ -99,6 +99,13 @@ class PlacementGroup:
         """
         return _call_placement_group_ready(self.id, timeout_seconds)
 
+    #[new] added by hogura
+    def add_bundles(self, bundles: List[Dict[str, float]]):
+        worker = ray.worker.global_worker
+        worker.check_connected()
+
+        #TODO(hogura): validate bundles and add pg in core
+
     @property
     def bundle_specs(self) -> List[Dict]:
         """List[Dict]: Return bundles belonging to this placement group."""
