@@ -3671,6 +3671,19 @@ cdef class CoreWorker:
                     placement_group_id))
         return status.ok()
 
+    #[new] added by hogura
+    def add_placement_group_bundles(
+            self,
+            PlacementGroupID placement_group_id,
+            c_vector[unordered_map[c_string, double]] bundles):
+        cdef CRayStatus status
+        cdef CPlacementGroupID cplacement_group_id = (
+            CPlacementGroupID.FromBinary(placement_group_id.binary()))
+        with nogil:
+            check_status(CCoreWorkerProcess.GetCoreWorker() \
+                            .AddPlacementGroupBundles(cplacement_group_id, bundles))
+        #TODO(hogura): any other status check required here?
+
     def submit_actor_task(self,
                           Language language,
                           ActorID actor_id,

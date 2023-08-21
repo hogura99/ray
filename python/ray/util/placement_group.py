@@ -101,10 +101,12 @@ class PlacementGroup:
 
     #[new] added by hogura
     def add_bundles(self, bundles: List[Dict[str, float]]):
-        worker = ray.worker.global_worker
+        worker = ray._private_worker.global_worker
         worker.check_connected()
 
         #TODO(hogura): validate bundles and add pg in core
+        worker.core_worker.add_placement_group_bundles(self.id, bundles)
+        self._fill_bundle_cache_if_needed(bundles_updated=True)
 
     @property
     def bundle_specs(self) -> List[Dict]:
@@ -117,9 +119,10 @@ class PlacementGroup:
         self._fill_bundle_cache_if_needed()
         return len(self.bundle_cache)
 
-    def _fill_bundle_cache_if_needed(self) -> None:
-        if not self.bundle_cache:
+    def _fill_bundle_cache_if_needed(self, bundles_updated=False) -> None:
+        if not self.bundle_cache or bundles_updated:
             self.bundle_cache = _get_bundle_cache(self.id)
+            #TODO(hogura): any other information to be updated here?
 
     def __eq__(self, other):
         if not isinstance(other, PlacementGroup):
