@@ -159,6 +159,10 @@ class GcsPlacementGroup {
   /// Returns the maximum CPU fraction per node for this placement group.
   double GetMaxCpuFractionPerNode() const;
 
+  /// [new] added by hogura
+  /// Add new bundles to placement group.
+  void AddBundles(const rpc::AddPlacementGroupBundlesRequest &request);
+
   const rpc::PlacementGroupStats &GetStats() const;
 
   rpc::PlacementGroupStats *GetMutableStats();
@@ -258,10 +262,20 @@ class GcsPlacementGroupManager : public rpc::PlacementGroupInfoHandler {
   void HandleGetAllPlacementGroup(rpc::GetAllPlacementGroupRequest request,
                                   rpc::GetAllPlacementGroupReply *reply,
                                   rpc::SendReplyCallback send_reply_callback) override;
+
   void HandleWaitPlacementGroupUntilReady(
       rpc::WaitPlacementGroupUntilReadyRequest request,
       rpc::WaitPlacementGroupUntilReadyReply *reply,
       rpc::SendReplyCallback send_reply_callback) override;
+
+  // [new] added by hogura
+  void HandleAddPlacementGroupBundles(const rpc::AddPlacementGroupBundlesRequest &request,
+                                      rpc::AddPlacementGroupBundlesReply *reply,
+                                      rpc::SendReplyCallback send_reply_callback) override;
+
+  void AddBundlesToPlacementGroup(const PlacementGroupID &placement_group_id,
+                                  const rpc::AddPlacementGroupBundlesRequest &request,
+                                  StatusCallback callback);
 
   /// Register a callback which will be invoked after successfully created.
   ///
@@ -526,7 +540,8 @@ class GcsPlacementGroupManager : public rpc::PlacementGroupInfoHandler {
     WAIT_PLACEMENT_GROUP_UNTIL_READY_REQUEST = 4,
     GET_NAMED_PLACEMENT_GROUP_REQUEST = 5,
     SCHEDULING_PENDING_PLACEMENT_GROUP = 6,
-    CountType_MAX = 7,
+    ADD_BUNDLES_TO_PLACEMENT_GROUP_REQUEST = 7,
+    CountType_MAX = 8,
   };
   uint64_t counts_[CountType::CountType_MAX] = {0};
 

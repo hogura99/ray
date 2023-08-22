@@ -525,6 +525,10 @@ class PlacementGroupInfoGcsServiceHandler {
                                           GetAllPlacementGroupReply *reply,
                                           SendReplyCallback send_reply_callback) = 0;
 
+  virtual void HandleAddPlacementGroupBundles(const AddPlacementGroupBundlesRequest &request,
+                                              AddPlacementGroupBundlesReply *reply,
+                                              SendReplyCallback send_reply_callback) = 0;
+
   virtual void HandleWaitPlacementGroupUntilReady(
       WaitPlacementGroupUntilReadyRequest request,
       WaitPlacementGroupUntilReadyReply *reply,
@@ -554,6 +558,7 @@ class PlacementGroupInfoGrpcService : public GrpcService {
       const ClusterID &cluster_id) override {
     PLACEMENT_GROUP_INFO_SERVICE_RPC_HANDLER(CreatePlacementGroup);
     PLACEMENT_GROUP_INFO_SERVICE_RPC_HANDLER(RemovePlacementGroup);
+    // PLACEMENT_GROUP_INFO_SERVICE_RPC_HANDLER(AddPlacementGroupBundles);
     PLACEMENT_GROUP_INFO_SERVICE_RPC_HANDLER(GetPlacementGroup);
     PLACEMENT_GROUP_INFO_SERVICE_RPC_HANDLER(GetNamedPlacementGroup);
     PLACEMENT_GROUP_INFO_SERVICE_RPC_HANDLER(GetAllPlacementGroup);

@@ -48,4 +48,29 @@ std::string PlacementGroupSpecification::GetName() const {
 double PlacementGroupSpecification::GetMaxCpuFractionPerNode() const {
   return message_->max_cpu_fraction_per_node();
 }
+
+void BuildBundle(rpc::Bundle* message_bundle,
+                 const std::unordered_map<std::string, double> &resources,
+                 const size_t &bundle_index,
+                 const PlacementGroupID &placement_group_id) {
+  auto mutable_bundle_id = message_bundle->mutable_bundle_id();
+  mutable_bundle_id->set_bundle_index(bundle_index);
+  mutable_bundle_id->set_placement_group_id(placement_group_id.Binary());
+  auto mutable_unit_resources = message_bundle->mutable_unit_resources();
+
+  // checkout PlacementGroupSpecBuilder::SetPlacementGroupSpec
+  // FIXME(hogura): Remove a resource with value 0 because they are not allowed.
+  // for (auto it = resources.begin(); it != resources.end();) {
+  //   auto current = it++;
+  //   if (current->second == 0) {
+  //     resources.erase(current);
+  //   } else {
+  //     mutable_unit_resources->insert({current->first, current->second});
+  //   }
+  // }
+
+  for (const auto &current: resources)
+    mutable_unit_resources->insert({current.first, current.second});
+}
+
 }  // namespace ray

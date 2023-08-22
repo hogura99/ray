@@ -372,6 +372,16 @@ message WaitPlacementGroupUntilReadyReply {
   GcsStatus status = 1;
 }
 
+message AddPlacementGroupBundlesRequest {
+  bytes placement_group_id = 1;
+  // The array of the bundle in Placement Group.
+  repeated Bundle bundles = 2;
+}
+
+message AddPlacementGroupBundlesReply {
+  GcsStatus status = 1;
+}
+
 message GetNamedPlacementGroupRequest {
   // Name of the placement group.
   string name = 1;
@@ -404,6 +414,9 @@ service PlacementGroupInfoGcsService {
   // Wait for placement group until ready.
   rpc WaitPlacementGroupUntilReady(WaitPlacementGroupUntilReadyRequest)
       returns (WaitPlacementGroupUntilReadyReply);
+  // [new] Add placement group bundles.
+  rpc AddPlacementGroupBundles(AddPlacementGroupBundlesRequest)
+      returns (AddPlacementGroupBundlesReply);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

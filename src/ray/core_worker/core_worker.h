@@ -886,8 +886,8 @@ class CoreWorker : public rpc::CoreWorkerServiceHandler {
 
   //[new] added by hogura
   //TODO(hogura): add comments about parameters
-  Status AddPlacementBundles(const PlacementGroupID &placement_group_id,
-                             const std::vector<std::unordered_map<std::string, double> > &bundles);
+  Status AddPlacementGroupBundles(const PlacementGroupID &placement_group_id,
+                                  const std::vector<std::unordered_map<std::string, double> > &bundles);
 
   /// Submit an actor task.
   ///

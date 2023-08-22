@@ -1018,20 +1018,31 @@ Status PlacementGroupInfoAccessor::SyncWaitUntilReady(
   return status;
 }
 
-Status SyncAddPlacementBundles(const PlacementGroupID &placement_group_id,
-                               const std::vector<std::unordered_map<std::string, double> > &bundles) {
-  RAY_LOG(DEBUG) << "Start SyncAddPlacementBundles, placement group id:" 
+// [new] added by hogura
+Status PlacementGroupInfoAccessor::SyncAddPlacementGroupBundles(
+    const PlacementGroupID &placement_group_id,
+    const std::vector<std::unordered_map<std::string, double> > &bundles) {
+  RAY_LOG(DEBUG) << "Start SyncAddPlacementGroupBundles, placement group id:" 
                  << placement_group_id;
 
-  // TODO(hogura): add request&reply in rpc
-  rpc::AddPlacementBundlesRequest request;
-  rpc::AddPlacementBundlesReply reply;
+  rpc::AddPlacementGroupBundlesRequest request;
   request.set_placement_group_id(placement_group_id.Binary());
   
-  // TODO(hogura): fill the request and reply; send the request
+  // checkout PlacementGroupSpecBuilder::SetPlacementGroupSpec
+  for (size_t i = 0; i < bundles.size(); i ++) {
+    auto message_bundle = request.add_bundles();
+    BuildBundle(message_bundle, bundles[i], i, placement_group_id);
+  }
 
-  RAY_LOG(DEBUG) << "Finished AddPlacementBundles, placement group id = "
-                 << placement_group_id;
+  rpc::AddPlacementGroupBundlesReply reply;
+  auto status = client_impl_->GetGcsRpcClient().SyncAddPlacementGroupBundles(
+    request, &reply, GetGcsTimeoutMs()
+  );
+
+  RAY_LOG(DEBUG) << "Finished AddPlacementGroupBundles, placement group id = "
+                 << placement_group_id << " "
+                 << "status: " << status.ok() << " "
+                 << "with message: " << status.message();
   return status;
 }
 

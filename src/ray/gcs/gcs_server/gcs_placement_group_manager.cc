@@ -643,6 +643,72 @@ void GcsPlacementGroupManager::HandleGetAllPlacementGroup(
   ++counts_[CountType::GET_ALL_PLACEMENT_GROUP_REQUEST];
 }
 
+void GcsPlacementGroupManager::AddBundlesToPlacementGroup(
+    const PlacementGroupID &placement_group_id,
+    const rpc::AddPlacementGroupBundlesRequest &request,
+    StatusCallback callback) {
+  auto placement_group = registered_placement_groups_.find(placement_group_id);
+  if (placement_group == registered_placement_groups_.end()) {
+    RAY_LOG(WARNING) << "Placement group " << placement_group_id << " doesn't exist.";
+    callback(Status::NotFound("Placement group not found."));
+    return;
+  }
+
+  placement_group->second->AddBundles(request);
+}
+
+void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &request) {
+  int cur_bundle_size = GetBundles().size();
+  auto placement_group_id_bin = GetPlacementGroupID().Binary();
+  // HINT: request.bundnles_size() returns int, not size_t
+  for (int i = 0; i < request.bundles_size(); i ++) {
+    auto message_bundle = placement_group_table_data_.add_bundles();
+    auto mutable_bundle_id = message_bundle->mutable_bundle_id();
+    mutable_bundle_id->set_bundle_index(cur_bundle_size + i);
+    mutable_bundle_id->set_placement_group_id(placement_group_id_bin);
+    // TODO(hogura): any other operations required to message bundle?
+    auto mutable_unit_resources = message_bundle->mutable_unit_resources();
+    // basically copy from BuildBundle, restore value 0 resources
+    auto resources = MapFromProtobuf(request.bundles(i).unit_resources());
+    for (auto it = resources.begin(); it != resources.end();) {
+      auto current = it ++;
+      if (current->second == 0) {
+        resources.erase(current);
+      } else {
+        mutable_unit_resources->insert({current->first, current->second});
+      }
+    }
+  }
+  cached_bundle_specs_.clear();
+}
+
+void GcsPlacementGroupManager::HandleAddPlacementGroupBundles(
+    const rpc::AddPlacementGroupBundlesRequest &request,
+    rpc::AddPlacementGroupBundlesReply *reply,
+    rpc::SendReplyCallback send_reply_callback) {
+  PlacementGroupID placement_group_id =
+      PlacementGroupID::FromBinary(request.placement_group_id());
+  RAY_LOG(DEBUG) << "Handling AddPlacementGropuBundles in GcsPlacementGroupManager, placement group id = "
+                 << placement_group_id;
+
+  AddBundlesToPlacementGroup(placement_group_id, request, 
+    [reply, send_reply_callback, placement_group_id](Status status) {
+      if (status.ok()) {
+        RAY_LOG(INFO) << "Successfully added bundles to placement group " 
+                      << placement_group_id;
+      } else {
+        RAY_LOG(ERROR) << "Failed to add bundles to placement group"
+                       << placement_group_id << " "
+                       << "with message: " << status.message();
+      }
+      GCS_RPC_SEND_REPLY(send_reply_callback, reply, status);
+    }
+  );
+
+  // TODO(hogura): haven't figured out what this counts use for
+  ++counts_[CountType::ADD_BUNDLES_TO_PLACEMENT_GROUP_REQUEST];
+}
+
 void GcsPlacementGroupManager::HandleWaitPlacementGroupUntilReady(
     rpc::WaitPlacementGroupUntilReadyRequest request,
     rpc::WaitPlacementGroupUntilReadyReply *reply,
@@ -775,6 +841,7 @@ void GcsPlacementGroupManager::OnNodeDead(const NodeID &node_id) {
       // TODO(ffbin): If we have a placement group bundle that requires a unique resource
       // (for example gpu resource when there’s only one gpu node), this can postpone
       // creating until a node with the resources is added. we will solve it in next pr.
+      // Comment(hogura): up to now(2023.8.22), no "solved it in next pr" being found.
       if (iter->second->GetState() != rpc::PlacementGroupTableData::RESCHEDULING) {
         iter->second->UpdateState(rpc::PlacementGroupTableData::RESCHEDULING);
         iter->second->GetMutableStats()->set_scheduling_state(

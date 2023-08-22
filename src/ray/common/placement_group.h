@@ -70,6 +70,11 @@ class PlacementGroupSpecification : public MessageWrapper<rpc::PlacementGroupSpe
   std::vector<BundleSpecification> bundles_;
 };
 
+void BuildBundle(rpc::Bundle *message_bundle,
+                 const std::unordered_map<std::string, double> &bundles,
+                 const size_t &bundle_index,
+                 const PlacementGroupID &placement_group_id);
+
 class PlacementGroupSpecBuilder {
  public:
   PlacementGroupSpecBuilder() : message_(std::make_shared<rpc::PlacementGroupSpec>()) {}
