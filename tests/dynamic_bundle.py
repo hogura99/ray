@@ -10,9 +10,11 @@ def gao():
 
 ray.init('auto')
 
-pg = placement_group(bundles=[{'cpu': 8.0}], strategy='SPREAD')
+pg = placement_group(bundles=[{'cpu': 0.5}], strategy='PACK')
 
-ray.wait(pg.ready())
+ray.wait([pg.ready()], timeout=10)
+
+print('placement group submitted')
 
 t = [
     gao.options(
@@ -23,6 +25,8 @@ t = [
     ) for i in range(n_node)
 ]
 
-pg.add_bundles([{'cpu': 8.0}])
+pg.add_bundles([{'cpu': 0.5}])
+
+print('bunldes added')
 
 ray.get(t)

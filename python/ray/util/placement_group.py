@@ -101,7 +101,7 @@ class PlacementGroup:
 
     #[new] added by hogura
     def add_bundles(self, bundles: List[Dict[str, float]]):
-        worker = ray._private_worker.global_worker
+        worker = ray._private.worker.global_worker
         worker.check_connected()
 
         #TODO(hogura): validate bundles and add pg in core
