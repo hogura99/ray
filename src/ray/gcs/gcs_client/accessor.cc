@@ -1018,6 +1018,23 @@ Status PlacementGroupInfoAccessor::SyncWaitUntilReady(
   return status;
 }
 
+Status SyncAddPlacementBundles(const PlacementGroupID &placement_group_id,
+                               const std::vector<std::unordered_map<std::string, double> > &bundles) {
+  RAY_LOG(DEBUG) << "Start SyncAddPlacementBundles, placement group id:" 
+                 << placement_group_id;
+
+  // TODO(hogura): add request&reply in rpc
+  rpc::AddPlacementBundlesRequest request;
+  rpc::AddPlacementBundlesReply reply;
+  request.set_placement_group_id(placement_group_id.Binary());
+  
+  // TODO(hogura): fill the request and reply; send the request
+
+  RAY_LOG(DEBUG) << "Finished AddPlacementBundles, placement group id = "
+                 << placement_group_id;
+  return status;
+}
+
 InternalKVAccessor::InternalKVAccessor(GcsClient *client_impl)
     : client_impl_(client_impl) {}
 

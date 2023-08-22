@@ -683,6 +683,11 @@ class PlacementGroupInfoAccessor {
   virtual Status SyncWaitUntilReady(const PlacementGroupID &placement_group_id,
                                     int64_t timeout_seconds);
 
+  // [new] added by hogura
+  // TODO: comments
+  virtual Status SyncAddPlacementBundles(const PlacementGroupID &placement_group_id,
+                                         const std::vector<std::unordered_map<std::string, double> > &bundles);
+
  private:
   GcsClient *client_impl_;
 };

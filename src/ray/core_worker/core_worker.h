@@ -884,6 +884,11 @@ class CoreWorker : public rpc::CoreWorkerServiceHandler {
   Status WaitPlacementGroupReady(const PlacementGroupID &placement_group_id,
                                  int64_t timeout_seconds);
 
+  //[new] added by hogura
+  //TODO(hogura): add comments about parameters
+  Status AddPlacementBundles(const PlacementGroupID &placement_group_id,
+                             const std::vector<std::unordered_map<std::string, double> > &bundles);
+
   /// Submit an actor task.
   ///
   /// \param[in] caller_id ID of the task submitter.

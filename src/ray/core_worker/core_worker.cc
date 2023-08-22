@@ -2166,6 +2166,20 @@ Status CoreWorker::WaitPlacementGroupReady(const PlacementGroupID &placement_gro
   }
 }
 
+Status CoreWorker::AddPlacementBundles(const PlacementGroupID &placement_group_id,
+                                       const std::vector<std::unordered_map<std::string, double> > &bundles) {
+  RAY_LOG(DEBUG) << "Calling AddPlacementBundles to GCS <" << placement_group_id << ">";
+  const auto status = gcs_client_->PlacementGroups().SyncAddPlacementBundles(placement_group_id, bundles);
+  
+  if (status.IsTimedOut()) {
+    std::ostringstream stream;
+    stream << "There was timeout in adding placement group bundle <" << placement_group_id << ">";
+    return Status::TimedOut(stream.str());
+  } else {
+    return status;
+  }
+}
+
 Status CoreWorker::SubmitActorTask(const ActorID &actor_id,
                                    const RayFunction &function,
                                    const std::vector<std::unique_ptr<TaskArg>> &args,
