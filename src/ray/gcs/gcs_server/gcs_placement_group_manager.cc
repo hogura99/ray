@@ -648,13 +648,20 @@ void GcsPlacementGroupManager::AddBundlesToPlacementGroup(
     const rpc::AddPlacementGroupBundlesRequest &request,
     StatusCallback callback) {
   auto placement_group = registered_placement_groups_.find(placement_group_id);
+
   if (placement_group == registered_placement_groups_.end()) {
     RAY_LOG(WARNING) << "Placement group " << placement_group_id << " doesn't exist.";
     callback(Status::NotFound("Placement group not found."));
     return;
   }
 
+  RAY_LOG(DEBUG) << "Found placement group. Now Try to add bundles.";
+
   placement_group->second->AddBundles(request);
+
+  RAY_LOG(DEBUG) << "Bunddles added.";
+
+  callback(Status::OK());
 }
 
 void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &request) {

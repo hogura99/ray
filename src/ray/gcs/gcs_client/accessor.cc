@@ -1041,12 +1041,16 @@ Status PlacementGroupInfoAccessor::SyncAddPlacementGroupBundles(
   serialized_bundles << "}";
   
   RAY_LOG(DEBUG) << "Constructed AddPlacementGroupBundlesRequest with bundles count: "
-                 << bundles.size() << " "
-                 << serialized_bundles.str();
+                 << bundles.size() << " ";
+                 // << serialized_bundles.str();
 
   rpc::AddPlacementGroupBundlesReply reply;
+
+  // For debug use, timeout = 5s; should be set to GetGcsTimeoutMs()
+  // auto timeout = GetGcsTimeoutMs();
+  auto timeout = absl::ToInt64Milliseconds(absl::Seconds(5));
   auto status = client_impl_->GetGcsRpcClient().SyncAddPlacementGroupBundles(
-    request, &reply, GetGcsTimeoutMs()
+    request, &reply, timeout
   );
 
   RAY_LOG(DEBUG) << "Finished AddPlacementGroupBundles, placement group id = "
