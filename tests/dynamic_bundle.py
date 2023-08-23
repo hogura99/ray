@@ -2,45 +2,65 @@ import ray
 from ray.util import placement_group
 from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 
-n_node = 1
-
 @ray.remote(num_cpus=1)
-def gao():
-    print(ray.util.get_current_placement_group().bundle_specs)
+def gao(task_id):
+    context = ray.get_runtime_context()
+    pg_id = context.get_placement_group_id()
+    pg_table = ray.util.placement_group_table()
+    pg = pg_table[pg_id]
+    print(task_id, ray.util.get_current_placement_group().bundle_specs, pg['bundles_to_node_id'], flush=True)
 
 ray.init('auto')
 
-pg = placement_group(bundles=[{'CPU': 1}], strategy='PACK')
+def test_dynamic():
+    n_node = 1
+    n_task = 4
 
-ready, _ = ray.wait([pg.ready()], timeout=5)
-assert ready
+    pg = placement_group(bundles=[{'CPU': 1}], strategy='PACK')
+    ready, _ = ray.wait([pg.ready()], timeout=5)
+    assert ready
+    print('placement group submitted')
 
-print('placement group submitted')
+    t = [
+        gao.options(
+            scheduling_strategy=PlacementGroupSchedulingStrategy(
+                placement_group=pg,
+                placement_group_bundle_index=i % n_node
+            )
+        ).remote(i) for i in range(n_task)
+    ]
 
-t = [
-    gao.options(
-        scheduling_strategy=PlacementGroupSchedulingStrategy(
-            placement_group=pg,
-            placement_group_bundle_index=i
-        )
-    ).remote() for i in range(n_node)
-]
+    print('Case no-bundles-added', flush=True)
+    ray.get(t)
+    
+    n_node = 2
 
-print('Case no-bundles-added')
+    pg.add_bundles([{'CPU': 1}])
+    print('Case bunldes-added', flush=True)
+    t = [
+        gao.options(
+            scheduling_strategy=PlacementGroupSchedulingStrategy(
+                placement_group=pg,
+                placement_group_bundle_index=i % n_node
+            )
+        ).remote(i) for i in range(n_task)
+    ]
+    ray.get(t)
 
-ray.get(t)
+def test_static():
+    pg = placement_group(bundles=[{'CPU': 1}, {'CPU': 1}], strategy='PACK')
+    n_node = 2
+    n_task = 4
+    t = [
+        gao.options(
+            scheduling_strategy=PlacementGroupSchedulingStrategy(
+                placement_group=pg,
+                placement_group_bundle_index=i % n_node
+            )
+        ).remote(i) for i in range(n_task)
+    ]
+    ray.get(t)
 
-pg.add_bundles([{'CPU': 2}])
-
-print('Case bunldes-added')
-
-t = [
-    gao.options(
-        scheduling_strategy=PlacementGroupSchedulingStrategy(
-            placement_group=pg,
-            placement_group_bundle_index=i
-        )
-    ).remote() for i in range(n_node)
-]
-
-ray.get(t)
+if __name__ == '__main__':
+    test_dynamic()
+    # test_static()
