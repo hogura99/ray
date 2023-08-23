@@ -683,7 +683,7 @@ void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &r
 }
 
 void GcsPlacementGroupManager::HandleAddPlacementGroupBundles(
-    const rpc::AddPlacementGroupBundlesRequest &request,
+    rpc::AddPlacementGroupBundlesRequest request,
     rpc::AddPlacementGroupBundlesReply *reply,
     rpc::SendReplyCallback send_reply_callback) {
   PlacementGroupID placement_group_id =

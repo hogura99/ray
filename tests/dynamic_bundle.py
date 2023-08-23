@@ -4,15 +4,16 @@ from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 
 n_node = 1
 
-@ray.remote(num_cpus=1)
+@ray.remote(num_cpus=0)
 def gao():
     print('hahaha')
 
 ray.init('auto')
 
-pg = placement_group(bundles=[{'cpu': 0.5}], strategy='PACK')
+pg = placement_group(bundles=[{'CPU': 1}], strategy='PACK')
 
-ray.wait([pg.ready()], timeout=10)
+ready, _ = ray.wait([pg.ready()], timeout=5)
+assert ready
 
 print('placement group submitted')
 
@@ -25,7 +26,7 @@ t = [
     ) for i in range(n_node)
 ]
 
-pg.add_bundles([{'cpu': 0.5}])
+pg.add_bundles([{'CPU': 1}])
 
 print('bunldes added')
 

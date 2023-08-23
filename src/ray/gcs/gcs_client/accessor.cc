@@ -1027,12 +1027,22 @@ Status PlacementGroupInfoAccessor::SyncAddPlacementGroupBundles(
 
   rpc::AddPlacementGroupBundlesRequest request;
   request.set_placement_group_id(placement_group_id.Binary());
-  
+
   // checkout PlacementGroupSpecBuilder::SetPlacementGroupSpec
+  std::stringstream serialized_bundles;
+  serialized_bundles << "{";
+
   for (size_t i = 0; i < bundles.size(); i ++) {
     auto message_bundle = request.add_bundles();
     BuildBundle(message_bundle, bundles[i], i, placement_group_id);
+    serialized_bundles << request.bundles(i).SerializeAsString() << ", ";
   }
+
+  serialized_bundles << "}";
+  
+  RAY_LOG(DEBUG) << "Constructed AddPlacementGroupBundlesRequest with bundles count: "
+                 << bundles.size() << " "
+                 << serialized_bundles.str();
 
   rpc::AddPlacementGroupBundlesReply reply;
   auto status = client_impl_->GetGcsRpcClient().SyncAddPlacementGroupBundles(

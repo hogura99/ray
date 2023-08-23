@@ -269,7 +269,7 @@ class GcsPlacementGroupManager : public rpc::PlacementGroupInfoHandler {
       rpc::SendReplyCallback send_reply_callback) override;
 
   // [new] added by hogura
-  void HandleAddPlacementGroupBundles(const rpc::AddPlacementGroupBundlesRequest &request,
+  void HandleAddPlacementGroupBundles(rpc::AddPlacementGroupBundlesRequest request,
                                       rpc::AddPlacementGroupBundlesReply *reply,
                                       rpc::SendReplyCallback send_reply_callback) override;
 
