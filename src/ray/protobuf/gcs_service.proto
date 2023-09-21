@@ -385,7 +385,7 @@ message AddPlacementGroupBundlesReply {
 message RemovePlacementGroupBundlesRequest {
   bytes placement_group_id = 1;
   // The array of the bundle in Placement Group.
-  repeated int bundle_ids = 2;
+  repeated int32 bundle_ids = 2;
 }
 
 message RemovePlacementGroupBundlesReply {

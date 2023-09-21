@@ -730,22 +730,19 @@ void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &r
 void GcsPlacementGroup::RemoveBundles(const rpc::RemovePlacementGroupBundlesRequest &request) {
   RAY_LOG(DEBUG) << "Remove bundle.";
 
-  int cur_bundle_size = GetBundles().size();
-  auto placement_group_id_bin = GetPlacementGroupID().Binary();
-
   std::vector<int> bundle_ids_to_rm = {};
   for (auto id: request.bundle_ids()) {
     RAY_LOG(DEBUG) << "remove id: " << id;
     bundle_ids_to_rm.push_back(id);
   }
-  std::sort(bundle_ids_to_rm.begin(), bundle_ids_to_rm.end())
+  std::sort(bundle_ids_to_rm.begin(), bundle_ids_to_rm.end());
   for (size_t i = 0; i < bundle_ids_to_rm.size(); i ++) {
     // when deleting, the id is decreasing.
     int id = bundle_ids_to_rm[i] - i;
-    assert(0 <= id && id < placement_group_table_data.bundles.size());
-    placement_group_table_data_.bundles.erase(
-      placement_group_table_data_.bundles.begin() + id;
-    )
+    assert(0 <= id && id < placement_group_table_data_.bundles_size());
+    placement_group_table_data_.mutable_bundles()->erase(
+      placement_group_table_data_.mutable_bundles()->begin() + id
+    );
   }
 
   cached_bundle_specs_.clear();
@@ -801,8 +798,7 @@ void GcsPlacementGroupManager::HandleRemovePlacementGroupBundles(
     }
   );
 
-  // TODO(hogura): haven't figured out what this counts use for
-  ++counts_[CountType::ADD_BUNDLES_in_PLACEMENT_GROUP_REQUEST];
+  ++counts_[CountType::REMOVE_BUNDLES_IN_PLACEMENT_GROUP_REQUEST];
 }
 
 void GcsPlacementGroupManager::HandleWaitPlacementGroupUntilReady(

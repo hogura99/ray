@@ -2182,7 +2182,7 @@ Status CoreWorker::AddPlacementGroupBundles(const PlacementGroupID &placement_gr
 
 Status CoreWorker::RemovePlacementGroupBundles(const PlacementGroupID &placement_group_id,
                                                const std::vector<int> &bundle_ids) {
-  RAY_LOG(DBEUG) << "Calling Remove PlacementGroup Bundles to GCS <" << placement_group_id << ">";
+  RAY_LOG(DEBUG) << "Calling Remove PlacementGroup Bundles to GCS <" << placement_group_id << ">";
   const auto status = gcs_client_->PlacementGroups().SyncRemovePlacementGroupBundles(placement_group_id, bundle_ids);
 
   if (status.IsTimedOut()) {
