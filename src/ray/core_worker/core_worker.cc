@@ -2180,6 +2180,20 @@ Status CoreWorker::AddPlacementGroupBundles(const PlacementGroupID &placement_gr
   }
 }
 
+Status CoreWorker::RemovePlacementGroupBundles(const PlacementGroupID &placement_group_id,
+                                               const std::vector<int> &bundle_ids) {
+  RAY_LOG(DBEUG) << "Calling Remove PlacementGroup Bundles to GCS <" << placement_group_id << ">";
+  const auto status = gcs_client_->PlacementGroups().SyncRemovePlacementGroupBundles(placement_group_id, bundle_ids);
+
+  if (status.IsTimedOut()) {
+    std::ostringstream stream;
+    stream << "There was timeout in removing placement group bundle <" << placement_group_id << ">";
+    return Status::TimedOut(stream.str());
+  } else {
+    return status;
+  }
+}
+
 Status CoreWorker::SubmitActorTask(const ActorID &actor_id,
                                    const RayFunction &function,
                                    const std::vector<std::unique_ptr<TaskArg>> &args,

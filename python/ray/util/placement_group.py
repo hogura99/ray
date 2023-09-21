@@ -108,6 +108,14 @@ class PlacementGroup:
         worker.core_worker.add_placement_group_bundles(self.id, bundles)
         self._fill_bundle_cache_if_needed(bundles_updated=True)
 
+    #[new] added by hogura
+    def remove_bundles(self, bunlde_ids: List[int]):
+        worker = ray._private.worker.global_worker
+        worker.check_connected()
+
+        worker.core_worker.remove_placement_group_bundles(self.id, bundle_ids)
+        self._fill_bundle_cache_if_needed(bundles_updated=True)
+
     @property
     def bundle_specs(self) -> List[Dict]:
         """List[Dict]: Return bundles belonging to this placement group."""

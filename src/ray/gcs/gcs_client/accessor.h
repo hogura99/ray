@@ -688,6 +688,10 @@ class PlacementGroupInfoAccessor {
   virtual Status SyncAddPlacementGroupBundles(const PlacementGroupID &placement_group_id,
                                               const std::vector<std::unordered_map<std::string, double> > &bundles);
 
+  // [new] added by hogura
+  virtual Status SyncRemovePlacementGroupBundles(const PlacementGroupID &placement_group_id,
+                                                 const std::vector<int> &bundle_ids);
+
  private:
   GcsClient *client_impl_;
 };

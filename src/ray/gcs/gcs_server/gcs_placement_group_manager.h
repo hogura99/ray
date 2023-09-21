@@ -163,6 +163,9 @@ class GcsPlacementGroup {
   /// Add new bundles to placement group.
   void AddBundles(const rpc::AddPlacementGroupBundlesRequest &request);
 
+  /// Remove bundles in placement group.
+  void RemoveBundles(const rpc::RemovePlacementGroupBundlesRequest &request);
+
   const rpc::PlacementGroupStats &GetStats() const;
 
   rpc::PlacementGroupStats *GetMutableStats();
@@ -276,6 +279,14 @@ class GcsPlacementGroupManager : public rpc::PlacementGroupInfoHandler {
   void AddBundlesToPlacementGroup(const PlacementGroupID &placement_group_id,
                                   const rpc::AddPlacementGroupBundlesRequest &request,
                                   StatusCallback callback);
+
+  void HandleRemovePlacementGroupBundles(rpc::RemovePlacementGroupBundlesRequest request,
+                                         rpc::RemovePlacementGroupBundlesReply *reply,
+                                         rpc::SendReplyCallback send_reply_callback) override;
+
+  void RemoveBundlesInPlacementGroup(const PlacementGroupID &placement_group_id,
+                                     const rpc::RemovePlacementGroupBundlesRequest &request,
+                                     StatusCallback callback);
 
   /// Register a callback which will be invoked after successfully created.
   ///
@@ -541,7 +552,8 @@ class GcsPlacementGroupManager : public rpc::PlacementGroupInfoHandler {
     GET_NAMED_PLACEMENT_GROUP_REQUEST = 5,
     SCHEDULING_PENDING_PLACEMENT_GROUP = 6,
     ADD_BUNDLES_TO_PLACEMENT_GROUP_REQUEST = 7,
-    CountType_MAX = 8,
+    REMOVE_BUNDLES_IN_PLACEMENT_GROUP_REQUEST = 8,
+    CountType_MAX = 9,
   };
   uint64_t counts_[CountType::CountType_MAX] = {0};
 

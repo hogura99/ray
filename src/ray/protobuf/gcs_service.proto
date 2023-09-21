@@ -382,6 +382,16 @@ message AddPlacementGroupBundlesReply {
   GcsStatus status = 1;
 }
 
+message RemovePlacementGroupBundlesRequest {
+  bytes placement_group_id = 1;
+  // The array of the bundle in Placement Group.
+  repeated int bundle_ids = 2;
+}
+
+message RemovePlacementGroupBundlesReply {
+  GcsStatus status = 1;
+}
+
 message GetNamedPlacementGroupRequest {
   // Name of the placement group.
   string name = 1;
@@ -417,6 +427,9 @@ service PlacementGroupInfoGcsService {
   // [new] Add placement group bundles.
   rpc AddPlacementGroupBundles(AddPlacementGroupBundlesRequest)
       returns (AddPlacementGroupBundlesReply);
+  // [new] Remove placement group bundles.
+  rpc RemovePlacementGroupBundles(RemovePlacementGroupBundlesRequest)
+      returns (RemovePlacementGroupBundlesReply);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

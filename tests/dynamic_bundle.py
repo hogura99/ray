@@ -2,7 +2,7 @@ import ray
 from ray.util import placement_group
 from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 
-@ray.remote(num_cpus=1)
+@ray.remote(num_cpus=1, num_gpus=1)
 def gao(task_id):
     context = ray.get_runtime_context()
     pg_id = context.get_placement_group_id()
@@ -14,9 +14,9 @@ ray.init('auto')
 
 def test_dynamic():
     n_node = 1
-    n_task = 4
+    n_task = 2
 
-    pg = placement_group(bundles=[{'CPU': 1}], strategy='PACK')
+    pg = placement_group(bundles=[{'CPU': 1, 'GPU': 1}], strategy='STRICT_SPREAD')
     ready, _ = ray.wait([pg.ready()], timeout=5)
     assert ready
     print('placement group submitted')
@@ -35,7 +35,7 @@ def test_dynamic():
     
     n_node = 2
 
-    pg.add_bundles([{'CPU': 1}])
+    pg.add_bundles([{'CPU': 1, 'GPU': 1}])
     print('Case bunldes-added', flush=True)
     t = [
         gao.options(

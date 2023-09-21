@@ -123,6 +123,8 @@ cdef extern from "ray/core_worker/core_worker.h" nogil:
             const CPlacementGroupID &placement_group_id, int64_t timeout_seconds)
         CRayStatus AddPlacementGroupBundles(
             const CPlacementGroupID &placement_group_id, c_vector[unordered_map[c_string, double]])
+        CRayStatus RemovePlacementGroupBundles(
+            const CPlacementGroupID &placement_group_id, c_vector[int])
         CRayStatus SubmitActorTask(
             const CActorID &actor_id, const CRayFunction &function,
             const c_vector[unique_ptr[CTaskArg]] &args,

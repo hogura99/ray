@@ -3684,6 +3684,18 @@ cdef class CoreWorker:
                             .AddPlacementGroupBundles(cplacement_group_id, bundles))
         #TODO(hogura): any other status check required here?
 
+    #[new] added by hogura
+    def remove_placement_group_bunldes(
+            self,
+            PlacementGroupID placement_group_id,
+            c_vector[int] bundle_ids):
+        cdef CRayStatus status
+        cdef CPlacementGroupID cplacement_group_id = (
+            CPlacementGroupID.FromBinary(placement_group_id.binary()))
+        with nogil:
+            check_status(CCoreWorkerProcess.GetCoreWorker() \
+                            .RemovePlacementGroupBundles(cplacement_group_id, bundle_ids))
+
     def submit_actor_task(self,
                           Language language,
                           ActorID actor_id,

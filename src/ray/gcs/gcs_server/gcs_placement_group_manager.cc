@@ -672,6 +672,36 @@ void GcsPlacementGroupManager::AddBundlesToPlacementGroup(
   callback(Status::OK());
 }
 
+void GcsPlacementGroupManager::RemoveBundlesInPlacementGroup(
+    const PlacementGroupID &placement_group_id,
+    const rpc::RemovePlacementGroupBundlesRequest &request,
+    StatusCallback callback) {
+  auto placement_group = registered_placement_groups_.find(placement_group_id);
+
+  if (placement_group == registered_placement_groups_.end()) {
+    RAY_LOG(WARNING) << "Placement group " << placement_group_id << " doesn't exist.";
+    callback(Status::NotFound("Placement group not found."));
+    return;
+  }
+
+  RAY_LOG(DEBUG) << "Found placement group. Now Try to Remove bundles.";
+
+  placement_group->second->RemoveBundles(request);
+  // TODO(hogura): check if SCHEDULING_STARTED and NO_RESOURCES should be rescheduled. 
+  // Is RESCHEDULING ok? Should I create a new status?
+  if (placement_group->second->GetState() == rpc::PlacementGroupTableData::CREATED) {
+    placement_group->second->UpdateState(rpc::PlacementGroupTableData::RESCHEDULING);
+    placement_group->second->GetMutableStats()->set_scheduling_state(
+        rpc::PlacementGroupStats::QUEUED);
+    AddToPendingQueue(placement_group->second, 0);
+    RAY_LOG(DEBUG) << "Need to reschedule placement group. Added to pending queue";
+  }
+
+  RAY_LOG(DEBUG) << "Bunddles added.";
+
+  callback(Status::OK());
+}
+
 void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &request) {
   int cur_bundle_size = GetBundles().size();
   auto placement_group_id_bin = GetPlacementGroupID().Binary();
@@ -694,6 +724,30 @@ void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &r
       }
     }
   }
+  cached_bundle_specs_.clear();
+}
+
+void GcsPlacementGroup::RemoveBundles(const rpc::RemovePlacementGroupBundlesRequest &request) {
+  RAY_LOG(DEBUG) << "Remove bundle.";
+
+  int cur_bundle_size = GetBundles().size();
+  auto placement_group_id_bin = GetPlacementGroupID().Binary();
+
+  std::vector<int> bundle_ids_to_rm = {};
+  for (auto id: request.bundle_ids()) {
+    RAY_LOG(DEBUG) << "remove id: " << id;
+    bundle_ids_to_rm.push_back(id);
+  }
+  std::sort(bundle_ids_to_rm.begin(), bundle_ids_to_rm.end())
+  for (size_t i = 0; i < bundle_ids_to_rm.size(); i ++) {
+    // when deleting, the id is decreasing.
+    int id = bundle_ids_to_rm[i] - i;
+    assert(0 <= id && id < placement_group_table_data.bundles.size());
+    placement_group_table_data_.bundles.erase(
+      placement_group_table_data_.bundles.begin() + id;
+    )
+  }
+
   cached_bundle_specs_.clear();
 }
 
@@ -722,6 +776,33 @@ void GcsPlacementGroupManager::HandleAddPlacementGroupBundles(
 
   // TODO(hogura): haven't figured out what this counts use for
   ++counts_[CountType::ADD_BUNDLES_TO_PLACEMENT_GROUP_REQUEST];
+}
+
+void GcsPlacementGroupManager::HandleRemovePlacementGroupBundles(
+    rpc::RemovePlacementGroupBundlesRequest request,
+    rpc::RemovePlacementGroupBundlesReply *reply,
+    rpc::SendReplyCallback send_reply_callback) {
+  PlacementGroupID placement_group_id =
+      PlacementGroupID::FromBinary(request.placement_group_id());
+  RAY_LOG(DEBUG) << "Handling RemovePlacementGropuBundles in GcsPlacementGroupManager, placement group id = "
+                 << placement_group_id;
+
+  RemoveBundlesInPlacementGroup(placement_group_id, request, 
+    [reply, send_reply_callback, placement_group_id](Status status) {
+      if (status.ok()) {
+        RAY_LOG(INFO) << "Successfully Removeed bundles to placement group " 
+                      << placement_group_id;
+      } else {
+        RAY_LOG(ERROR) << "Failed to remove bundles to placement group"
+                       << placement_group_id << " "
+                       << "with message: " << status.message();
+      }
+      GCS_RPC_SEND_REPLY(send_reply_callback, reply, status);
+    }
+  );
+
+  // TODO(hogura): haven't figured out what this counts use for
+  ++counts_[CountType::ADD_BUNDLES_in_PLACEMENT_GROUP_REQUEST];
 }
 
 void GcsPlacementGroupManager::HandleWaitPlacementGroupUntilReady(

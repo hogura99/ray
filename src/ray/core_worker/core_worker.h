@@ -889,6 +889,10 @@ class CoreWorker : public rpc::CoreWorkerServiceHandler {
   Status AddPlacementGroupBundles(const PlacementGroupID &placement_group_id,
                                   const std::vector<std::unordered_map<std::string, double> > &bundles);
 
+  //[new] added by hogura
+  Status RemovePlacementGroupBundles(const PlacementGroupID &placement_group_id,
+                                     const std::vector<int> &bundle_ids);
+
   /// Submit an actor task.
   ///
   /// \param[in] caller_id ID of the task submitter.

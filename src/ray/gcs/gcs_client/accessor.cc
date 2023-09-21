@@ -1046,7 +1046,7 @@ Status PlacementGroupInfoAccessor::SyncAddPlacementGroupBundles(
 
   rpc::AddPlacementGroupBundlesReply reply;
 
-  // For debug use, timeout = 5s; should be set to GetGcsTimeoutMs()
+  // FIXME(hogura): For debug use, timeout = 5s; should be set to GetGcsTimeoutMs()
   // auto timeout = GetGcsTimeoutMs();
   auto timeout = absl::ToInt64Milliseconds(absl::Seconds(5));
   auto status = client_impl_->GetGcsRpcClient().SyncAddPlacementGroupBundles(
@@ -1054,6 +1054,35 @@ Status PlacementGroupInfoAccessor::SyncAddPlacementGroupBundles(
   );
 
   RAY_LOG(DEBUG) << "Finished AddPlacementGroupBundles, placement group id = "
+                 << placement_group_id << " "
+                 << "status: " << status.ok() << " "
+                 << "with message: " << status.message();
+  return status;
+}
+
+// [new] added by hogura
+Status PlacementGroupInfoAccessor::SyncRemovePlacementGroupBundles(
+    const PlacementGroupID &placement_group_id,
+    const std::vector<int> &bundle_ids) {
+  RAY_LOG(DEBUG) << "Start SyncRemovePlacementGroupBundles, placement group id:" 
+                 << placement_group_id;
+
+  rpc::RemovePlacementGroupBundlesRequest request;
+  request.set_placement_group_id(placement_group_id.Binary());
+
+  for (size_t i = 0; i < bundle_ids.size(); i ++)
+    request.add_bundle_ids(bundle_ids[i]);
+
+  rpc::RemovePlacementGroupBundlesReply reply;
+
+  // For debug use, timeout = 5s; should be set to GetGcsTimeoutMs()
+  // auto timeout = GetGcsTimeoutMs();
+  auto timeout = absl::ToInt64Milliseconds(absl::Seconds(5));
+  auto status = client_impl_->GetGcsRpcClient().SyncRemovePlacementGroupBundles(
+    request, &reply, timeout
+  );
+
+  RAY_LOG(DEBUG) << "Finished RemovePlacementGroupBundles, placement group id = "
                  << placement_group_id << " "
                  << "status: " << status.ok() << " "
                  << "with message: " << status.message();
