@@ -3685,7 +3685,7 @@ cdef class CoreWorker:
         #TODO(hogura): any other status check required here?
 
     #[new] added by hogura
-    def remove_placement_group_bunldes(
+    def remove_placement_group_bundles(
             self,
             PlacementGroupID placement_group_id,
             c_vector[int] bundle_ids):
