@@ -689,15 +689,13 @@ void GcsPlacementGroupManager::RemoveBundlesInPlacementGroup(
   placement_group->second->RemoveBundles(request);
   // HINT: since the resources of this bundle must be satisfied, reschedule is not neccesary.
 
-  // TODO(hogura): check if SCHEDULING_STARTED and NO_RESOURCES should be rescheduled. 
-  // Is RESCHEDULING ok? Should I create a new status?
-  if (placement_group->second->GetState() == rpc::PlacementGroupTableData::CREATED) {
-    placement_group->second->UpdateState(rpc::PlacementGroupTableData::RESCHEDULING);
-    placement_group->second->GetMutableStats()->set_scheduling_state(
-        rpc::PlacementGroupStats::QUEUED);
-    AddToPendingQueue(placement_group->second, 0);
-    RAY_LOG(DEBUG) << "Need to reschedule placement group. Added to pending queue";
-  }
+  // if (placement_group->second->GetState() == rpc::PlacementGroupTableData::CREATED) {
+  //   placement_group->second->UpdateState(rpc::PlacementGroupTableData::RESCHEDULING);
+  //   placement_group->second->GetMutableStats()->set_scheduling_state(
+  //       rpc::PlacementGroupStats::QUEUED);
+  //   AddToPendingQueue(placement_group->second, 0);
+  //   RAY_LOG(DEBUG) << "Need to reschedule placement group. Added to pending queue";
+  // }
 
   RAY_LOG(DEBUG) << "Bundles removed.";
 
