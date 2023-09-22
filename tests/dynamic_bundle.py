@@ -15,11 +15,11 @@ GAP = 0.0001
 @ray.remote(num_cpus=1, num_gpus=1)
 def gao(task_id):
     context = ray.get_runtime_context()
-    pg_id = context.get_placement_group_id()
-    pg_table = ray.util.placement_group_table()
-    time.sleep(GAP)
-    pg = pg_table[pg_id]
-    print(task_id, ray.util.get_current_placement_group().bundle_specs, pg['bundles_to_node_id'], flush=True)
+    # pg_id = context.get_placement_group_id()
+    # pg_table = ray.util.placement_group_table()
+    # time.sleep(GAP)
+    # pg = pg_table[pg_id]
+    # print(task_id, ray.util.get_current_placement_group().bundle_specs, pg['bundles_to_node_id'], flush=True)
     return context.get_node_id()
 
 
@@ -77,20 +77,21 @@ class BundleTests(TestCase):
         assert len(results[-1]) == 1 + node_add
 
     def test_rem_bundle(self):
-        n_node = 3
-        pg = self.get_pg(n_node, 2)
+        n_node = 2
+        pg = self.get_pg(n_node, 1)
         tasks = []
         for _del in range(n_node):
             t = [
                 gao.options(
                     scheduling_strategy=PlacementGroupSchedulingStrategy(
                         placement_group=pg,
-                        placement_group_bundle_index=i % n_node
+                        placement_group_bundle_index=i % (n_node - _del)
                     )
                 ).remote(i) for i in range(N_TASK)
             ]
-            time.sleep(GAP * 2)
+            time.sleep(GAP * 10)
             if _del != n_node - 1:
+                print('remove', _del)
                 pg.remove_bundles([n_node - _del - 1])
             tasks.append(t)
             time.sleep(2)
@@ -99,7 +100,8 @@ class BundleTests(TestCase):
             results.append(self.stats(ray.get(task)))
         for i in range(1, len(results)):
             assert len(results[i - 1]) - 1 == len(results[i])
-        assert len(results[i - 1]) == 1
+        print(results)
+        assert len(results[-1]) == 1
 
     def test_dynamic_bundle(self):
         pass

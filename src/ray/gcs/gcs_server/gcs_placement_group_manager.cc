@@ -687,6 +687,8 @@ void GcsPlacementGroupManager::RemoveBundlesInPlacementGroup(
   RAY_LOG(DEBUG) << "Found placement group. Now Try to Remove bundles.";
 
   placement_group->second->RemoveBundles(request);
+  // HINT: since the resources of this bundle must be satisfied, reschedule is not neccesary.
+
   // TODO(hogura): check if SCHEDULING_STARTED and NO_RESOURCES should be rescheduled. 
   // Is RESCHEDULING ok? Should I create a new status?
   if (placement_group->second->GetState() == rpc::PlacementGroupTableData::CREATED) {
@@ -697,7 +699,7 @@ void GcsPlacementGroupManager::RemoveBundlesInPlacementGroup(
     RAY_LOG(DEBUG) << "Need to reschedule placement group. Added to pending queue";
   }
 
-  RAY_LOG(DEBUG) << "Bunddles added.";
+  RAY_LOG(DEBUG) << "Bundles removed.";
 
   callback(Status::OK());
 }
@@ -728,7 +730,11 @@ void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &r
 }
 
 void GcsPlacementGroup::RemoveBundles(const rpc::RemovePlacementGroupBundlesRequest &request) {
-  RAY_LOG(DEBUG) << "Remove bundle.";
+  int cur_bundle_size = GetBundles().size();
+  auto placement_group_id_bin = GetPlacementGroupID().Binary();
+
+  RAY_LOG(DEBUG) << "Remove bundle, current size: " << cur_bundle_size
+                 << "placement_group_id: " << placement_group_id_bin;
 
   std::vector<int> bundle_ids_to_rm = {};
   for (auto id: request.bundle_ids()) {
@@ -744,6 +750,8 @@ void GcsPlacementGroup::RemoveBundles(const rpc::RemovePlacementGroupBundlesRequ
       placement_group_table_data_.mutable_bundles()->begin() + id
     );
   }
+
+  RAY_LOG(DEBUG) << "After bundle removed, bundle size is: " << GetBundles().size();
 
   cached_bundle_specs_.clear();
 }
