@@ -731,10 +731,10 @@ void GcsPlacementGroup::AddBundles(const rpc::AddPlacementGroupBundlesRequest &r
 
 void GcsPlacementGroup::RemoveBundles(const rpc::RemovePlacementGroupBundlesRequest &request) {
   int cur_bundle_size = GetBundles().size();
-  auto placement_group_id_bin = GetPlacementGroupID().Binary();
+  auto placement_group_id = GetPlacementGroupID();
 
   RAY_LOG(DEBUG) << "Remove bundle, current size: " << cur_bundle_size
-                 << "placement_group_id: " << placement_group_id_bin;
+                 << "placement_group_id: " << placement_group_id;
 
   std::vector<int> bundle_ids_to_rm = {};
   for (auto id: request.bundle_ids()) {
@@ -751,9 +751,9 @@ void GcsPlacementGroup::RemoveBundles(const rpc::RemovePlacementGroupBundlesRequ
     );
   }
 
-  RAY_LOG(DEBUG) << "After bundle removed, bundle size is: " << GetBundles().size();
-
   cached_bundle_specs_.clear();
+
+  RAY_LOG(DEBUG) << "After bundle removed, bundle size is: " << GetBundles().size();
 }
 
 void GcsPlacementGroupManager::HandleAddPlacementGroupBundles(
