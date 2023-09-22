@@ -740,6 +740,7 @@ void GcsPlacementGroup::RemoveBundles(const rpc::RemovePlacementGroupBundlesRequ
   for (auto id: request.bundle_ids()) {
     RAY_LOG(DEBUG) << "remove id: " << id;
     bundle_ids_to_rm.push_back(id);
+    GetMutableBundle(id)->clear_node_id();
   }
   std::sort(bundle_ids_to_rm.begin(), bundle_ids_to_rm.end());
   for (size_t i = 0; i < bundle_ids_to_rm.size(); i ++) {
