@@ -109,7 +109,7 @@ class PlacementGroup:
         self._fill_bundle_cache_if_needed(bundles_updated=True)
 
     #[new] added by hogura
-    def remove_bundles(self, bunlde_ids: List[int]):
+    def remove_bundles(self, bundle_ids: List[int]):
         worker = ray._private.worker.global_worker
         worker.check_connected()
 
