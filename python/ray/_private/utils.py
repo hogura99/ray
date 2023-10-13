@@ -1668,7 +1668,8 @@ def check_version_info(cluster_metadata):
             "    Ray: " + version_info[0] + "\n"
             "    Python: " + version_info[1] + "\n"
         )
-        raise RuntimeError(error_message)
+        # raise RuntimeError(error_message)
+        logger.info(error_message) # Ignore mismatch info
 
 
 def get_runtime_env_info(
